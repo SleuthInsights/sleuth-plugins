@@ -1,0 +1,17 @@
+{
+  "name": "sleuth-plugins",
+  "description": "Sleuth Insights plugins for biopharma research in Claude.",
+  "owner": {
+    "name": "Sleuth Insights",
+    "email": "support@sleuthinsights.com",
+    "url": "https://sleuthinsights.com/"
+  },
+  "plugins": [
+    {
+      "name": "sleuth-insights",
+      "source": "./claude/sleuth-insights",
+      "description": "Run biopharma research with Sleuth from Claude: create research projects, follow long-running runs and approval steps, and read the resulting datasets, charts, and documents.",
+      "category": "research"
+    }
+  ]
+}

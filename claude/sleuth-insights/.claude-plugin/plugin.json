@@ -1,0 +1,28 @@
+{
+  "name": "sleuth-insights",
+  "displayName": "Sleuth Insights",
+  "version": "0.1.0",
+  "description": "Run biopharma research with Sleuth from Claude: create research projects, follow long-running runs and approval steps, and read the resulting datasets, charts, and documents.",
+  "author": {
+    "name": "Sleuth Insights",
+    "email": "support@sleuthinsights.com",
+    "url": "https://sleuthinsights.com/"
+  },
+  "homepage": "https://sleuthinsights.com/",
+  "repository": "https://github.com/SleuthInsights/sleuth-plugins",
+  "license": "LicenseRef-Sleuth-Insights",
+  "keywords": [
+    "sleuth",
+    "biopharma",
+    "biotech",
+    "research",
+    "competitive-intelligence",
+    "clinical-trials",
+    "datasets"
+  ],
+  "icon": "./assets/sleuth-icon.png",
+  "documentationUrl": "https://github.com/SleuthInsights/sleuth-plugins/tree/main/claude/sleuth-insights#readme",
+  "supportUrl": "https://sleuthinsights.com/faq",
+  "privacyPolicyUrl": "https://sleuthinsights.com/privacy-policy",
+  "termsOfServiceUrl": "https://sleuthinsights.com/terms-of-service"
+}

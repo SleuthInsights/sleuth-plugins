@@ -1,0 +1,37 @@
+name: Validate plugins
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - name: Plugin folders match the canonical skill, license, and icon
+        run: python3 scripts/sync.py --check
+
+      - name: Anthropic directory pre-submission checklist
+        run: python3 scripts/check_claude_plugin.py claude/sleuth-insights --strict
+
+      # 2.1.281+ is needed for the directory listing fields to pass --strict.
+      - name: Claude Code validation
+        run: |
+          npm install --global @anthropic-ai/claude-code@2.1.288
+          claude plugin validate --strict ./claude/sleuth-insights
+          claude plugin validate --strict .
+
+      - name: ChatGPT package builds and verifies
+        run: python3 chatgpt/scripts/build_plugin.py

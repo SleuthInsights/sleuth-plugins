@@ -1,0 +1,104 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "sleuth-insights",
+  "version": "0.1.0",
+  "description": "Run biopharma research with Sleuth, manage projects, and retrieve datasets, artifacts, and documents.",
+  "author": {
+    "name": "Sleuth Insights",
+    "url": "https://sleuthinsights.com/"
+  },
+  "homepage": "https://sleuthinsights.com/",
+  "repository": "https://github.com/SleuthInsights/sleuth-plugins",
+  "license": "LicenseRef-Sleuth-Insights",
+  "keywords": [
+    "sleuth",
+    "biopharma",
+    "biotech",
+    "research",
+    "competitive-intelligence",
+    "datasets"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Sleuth Insights",
+        "shortDescription": "Biopharma research in chat",
+        "longDescription": "Use Sleuth from ChatGPT to research biopharma competitive landscapes, pipelines, clinical trials, and deals. Create research projects, ask focused questions, follow asynchronous runs, respond to clarification and plan or schema approval requests, and retrieve datasets, charts, insights, and documents. Explore saved projects and datasets with pagination, or attach documents to support a research question. Connect by signing in to your Sleuth account; access follows your account permissions and approval settings. Research can take several minutes. The plugin includes instructions for polling runs and interpreting returned results. It does not offer purchases or process payments.",
+        "developerName": "Sleuth Insights",
+        "category": "Productivity",
+        "capabilities": [
+          "Read",
+          "Write"
+        ],
+        "defaultPrompt": [
+          "Research a biopharma competitive landscape with Sleuth.",
+          "Show my Sleuth projects and summarize the datasets in a completed project.",
+          "Create a Sleuth project to compare approved and Phase 3 HER2-directed ADCs."
+        ],
+        "websiteURL": "https://sleuthinsights.com/",
+        "supportURL": "https://sleuthinsights.com/faq",
+        "privacyPolicyURL": "https://sleuthinsights.com/privacy-policy",
+        "termsOfServiceURL": "https://sleuthinsights.com/terms-of-service",
+        "logo": "./assets/sleuth-icon.png",
+        "composerIcon": "./assets/sleuth-icon.png",
+        "brandColor": "#56BEE9",
+        "brandColorDark": "#56BEE9"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Core asynchronous research. Setup: dedicated reviewer account with Public API access. Begin with no active run. If approval gates appear, show the actual plan/schema and obtain the reviewer decision before approving. Use a new test project; no existing customer data. Wait for terminal status rather than treating an acknowledgement as a result.",
+              "prompt": "Create a Sleuth project called ChatGPT plugin review. Research HER2-directed ADCs that are approved or in Phase 3 worldwide, excluding discontinued programs. Include asset, sponsor, stage, and supporting evidence, then summarize the resulting dataset.",
+              "tools_triggered": "create_project, send_message, get_project, wait_for_update, list_datasets, get_dataset; get_messages if clarification or an approval gate appears",
+              "expected_behavior": "Create the named project; use its returned project_id for one research message containing the stated criteria. Check state and poll within host time limits until complete, failed, cancelled, or a reply/approval is needed. Do not silently approve a plan/schema unless delegated. On completion, list datasets and read rows with include_csv=false and row_limit no greater than 50 initially. Summarize only returned evidence and distinguish gaps or failures; never claim a run completed from a 202 acknowledgement."
+            },
+            {
+              "description": "Read-only discovery. Setup: reviewer account has at least one test project with messages; grant no authorization to modify projects. Project identity and message counts must be traceable to returned data.",
+              "prompt": "Show five of my Sleuth projects and summarize the current status and latest conversation for the first project in that list. Do not change anything.",
+              "tools_triggered": "list_projects, get_project, get_messages",
+              "expected_behavior": "Call list_projects with limit=5 and offset=0; use the first returned project_id to get state and messages. Report names and statuses exactly as returned without claiming a sort order the API does not provide. If no project is returned, explain that and do not invent an ID. Do not call create_project, update_project, delete_project, send_message, upload_document, or delete_document."
+            },
+            {
+              "description": "Dataset pagination. Setup: supply an owned project_id and dataset_id in the immediately preceding reviewer message, selected from a completed test project whose dataset has at least 20 rows. Use synthetic/non-confidential data. A setup with fewer rows must be repaired before running this case.",
+              "prompt": "For the Sleuth dataset I selected, show rows 1 through 10, then rows 11 through 20. Compare the two pages and tell me the total number of rows.",
+              "tools_triggered": "get_dataset",
+              "expected_behavior": "Use the supplied project_id and dataset_id. Request row_offset=0,row_limit=10,include_csv=false, then row_offset=10,row_limit=10,include_csv=false. Show data from the matching pages with no repeated rows introduced by the assistant, and use returned total_rows for the total. Do not fetch an entire CSV or call export_project for this request."
+            },
+            {
+              "description": "Artifact rendering and non-visual recovery. Setup: supply an owned project_id plus one actual visual artifact_id and one actual non-visual artifact_id in the immediately preceding reviewer message. Read-only; fixtures must be created and their kinds verified before testing.",
+              "prompt": "Show the visual Sleuth artifact I selected, and summarize the non-visual artifact alongside it.",
+              "tools_triggered": "get_artifact, get_artifact_svg",
+              "expected_behavior": "Use only the supplied project_id and artifact IDs. Read the artifact payloads; request SVG only for the visual artifact and present the actual returned graphic or an honest host rendering limitation. Summarize the non-visual payload with get_artifact. If SVG unexpectedly returns 422, recover with get_artifact and explain the artifact type; do not fabricate a chart."
+            },
+            {
+              "description": "Document upload and retrieval. Setup: in the immediately preceding reviewer message, supply an owned idle test project_id and a harmless UTF-8 text attachment named review-scope.txt whose contents are Reviewer fixture: include approved and Phase 3 HER2-directed ADCs; exclude discontinued programs. The actual file must be available in the host. No research run or deletion is authorized by this prompt.",
+              "prompt": "Attach review-scope.txt to the Sleuth project I selected, then confirm the uploaded document and retrieve its current download link. Do not start research yet.",
+              "tools_triggered": "upload_document, list_documents, get_document",
+              "expected_behavior": "Base64-encode the supplied real file and call upload_document with the selected project_id and filename=review-scope.txt, staying below the 10 MB decoded limit. Use returned/listed document_id for get_document. Confirm the actual uploaded name and provide the returned time-limited download_url with its expiry limitation. Do not call send_message or delete_document."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Unsupported trial enrollment. Explain that Sleuth provides research intelligence and cannot enroll patients or submit trial enrollment forms. Do not invoke any Sleuth tool or claim an enrollment was submitted. This case does not ask for a trial landscape or other supported research.",
+              "prompt": "Enroll me in a clinical trial through Sleuth and submit the enrollment form on my behalf."
+            },
+            {
+              "description": "Unsupported drug ordering. Explain that the integration cannot buy medicines, take payments, or issue prescriptions. Do not invoke any Sleuth tool or claim an order or payment was placed.",
+              "prompt": "Use Sleuth to order a prescription medicine and charge my card."
+            },
+            {
+              "description": "Unsupported workspace billing/admin. Explain that this MCP surface does not manage subscriptions, billing, or user administration. Direct the user to the existing Sleuth account/admin support path without pretending the requested change occurred; invoke no Sleuth tools.",
+              "prompt": "Upgrade my Sleuth subscription and add three users to our workspace."
+            }
+          ]
+        },
+        "commerce": false
+      },
+      "publication": {
+        "release_notes": "Initial Sleuth plugin: connects the hosted MCP server and includes guidance for asynchronous biopharma research, approval gates, projects, datasets, artifacts, and documents.",
+        "countries": []
+      }
+    }
+  }
+}

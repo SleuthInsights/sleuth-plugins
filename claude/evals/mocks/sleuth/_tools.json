@@ -1,0 +1,662 @@
+{
+  "tools": [
+    {
+      "name": "create_project",
+      "title": "Create project",
+      "description": "Create a new research project. Returns project_id and status idle.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Project name (1–255 characters)."
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Create project",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "delete_document",
+      "title": "Delete document",
+      "description": "Delete a document from a project.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          },
+          "document_id": {
+            "type": "string",
+            "description": "Document UUID."
+          }
+        },
+        "required": [
+          "project_id",
+          "document_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Delete document",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "delete_project",
+      "title": "Delete project",
+      "description": "Delete a project and all its content. Irreversible.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Delete project",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "download_dataset_csv",
+      "title": "Download dataset as CSV",
+      "description": "Download the full dataset as CSV text. Warning: large datasets produce large results — prefer get_dataset pagination when only a sample is needed.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          },
+          "dataset_id": {
+            "type": "string",
+            "description": "Dataset UUID."
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Optional version number."
+          }
+        },
+        "required": [
+          "project_id",
+          "dataset_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Download dataset as CSV",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "export_project",
+      "title": "Export project",
+      "description": "Export a full project snapshot. Warning: can be very large (upstream caps datasets at 10k rows each). Prefer paginated dataset and artifact tools for agent workflows.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Export project",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "get_artifact",
+      "title": "Get artifact",
+      "description": "Get a full artifact payload. The artifact field is the canonical chart spec.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          },
+          "artifact_id": {
+            "type": "string",
+            "description": "Artifact UUID."
+          }
+        },
+        "required": [
+          "project_id",
+          "artifact_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Get artifact",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "get_artifact_svg",
+      "title": "Get artifact as SVG",
+      "description": "Get an artifact rendered as SVG markup. Returns 422 for non-visual artifacts.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          },
+          "artifact_id": {
+            "type": "string",
+            "description": "Artifact UUID."
+          }
+        },
+        "required": [
+          "project_id",
+          "artifact_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Get artifact as SVG",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "get_dataset",
+      "title": "Get dataset rows",
+      "description": "Get a dataset (optionally a specific version) with paginated rows. Default row_limit is 50 (max 2000) to protect agent context windows. The duplicated csv field is omitted unless include_csv=true. Use total_rows / row_offset / row_limit to paginate.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          },
+          "dataset_id": {
+            "type": "string",
+            "description": "Dataset UUID."
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Optional version number (uses versions/{v} route when set)."
+          },
+          "row_offset": {
+            "default": 0,
+            "type": "integer",
+            "description": "Row pagination offset (default 0)."
+          },
+          "row_limit": {
+            "default": 50,
+            "type": "integer",
+            "description": "Row page size (clamped 1–2000, default 50)."
+          },
+          "include_csv": {
+            "default": false,
+            "type": "boolean",
+            "description": "When True, keep the duplicated csv field."
+          }
+        },
+        "required": [
+          "project_id",
+          "dataset_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Get dataset rows",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "get_document",
+      "title": "Get document",
+      "description": "Get document metadata including a time-limited download_url. The URL expires in minutes — fetch promptly.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          },
+          "document_id": {
+            "type": "string",
+            "description": "Document UUID."
+          }
+        },
+        "required": [
+          "project_id",
+          "document_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Get document",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "get_health",
+      "title": "Check Sleuth service health",
+      "description": "Check Public API health through the full gateway chain. Unauthenticated upstream; still requires an MCP bearer for this tool.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Check Sleuth service health",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "get_messages",
+      "title": "Get project messages",
+      "description": "List user and assistant messages for a project.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          },
+          "limit": {
+            "default": 50,
+            "type": "integer",
+            "description": "Page size (1–200, default 50)."
+          },
+          "offset": {
+            "default": 0,
+            "type": "integer",
+            "description": "Page offset (default 0)."
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Get project messages",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "get_project",
+      "title": "Get project status",
+      "description": "Get full project state — the primary polling endpoint. Status lifecycle: idle → processing → awaiting_plan_approval → awaiting_schema_approval → executing → complete / failed / cancelled. Org-scoped API keys auto-approve the plan/schema gates, so those agents typically see processing → executing → complete. User-owned keys and OAuth users honor their Studio auto-approve settings — resume gated runs via send_message actions. When status is awaiting_clarification, read the latest assistant message via get_messages and answer via send_message. Respect the retry_after hint (seconds) when polling.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Get project status",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "list_artifacts",
+      "title": "List artifacts",
+      "description": "List artifacts (charts/visualizations) for a project.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "List artifacts",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "list_dataset_versions",
+      "title": "List dataset versions",
+      "description": "List versions of a dataset.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          },
+          "dataset_id": {
+            "type": "string",
+            "description": "Dataset UUID."
+          }
+        },
+        "required": [
+          "project_id",
+          "dataset_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "List dataset versions",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "list_datasets",
+      "title": "List datasets",
+      "description": "List datasets for a project.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "List datasets",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "list_documents",
+      "title": "List documents",
+      "description": "List documents for a project.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "List documents",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "list_projects",
+      "title": "List projects",
+      "description": "List projects for the authenticated API key.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "default": 20,
+            "type": "integer",
+            "description": "Page size (1–100, default 20)."
+          },
+          "offset": {
+            "default": 0,
+            "type": "integer",
+            "description": "Page offset (default 0)."
+          }
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "title": "List projects",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "send_message",
+      "title": "Send message or approval action",
+      "description": "Send a user message or an action to a project. Provide exactly one of message (research question / clarification answer) or action (cancel, approve_plan, approve_schema, reject_plan, reject_schema). Approve/reject actions resume runs paused at awaiting_plan_approval / awaiting_schema_approval — these gates surface for user-owned keys and OAuth users whose Studio auto-approve settings are off (org keys auto-approve them). Optional feedback is only accepted with reject_plan / reject_schema. Returns a 202 acknowledgement. To attach files, call upload_document first, then send_message.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "User message text (mutually exclusive with action)."
+          },
+          "action": {
+            "anyOf": [
+              {
+                "enum": [
+                  "cancel",
+                  "approve_plan",
+                  "approve_schema",
+                  "reject_plan",
+                  "reject_schema"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Control action (mutually exclusive with message): ``cancel``,\n``approve_plan``, ``approve_schema``, ``reject_plan``, or\n``reject_schema``."
+          },
+          "feedback": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Optional rejection feedback, forwarded upstream when non-empty.\nOnly accepted alongside ``reject_plan`` / ``reject_schema``.\nEmpty string is treated as absent."
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Send message or approval action",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "update_project",
+      "title": "Rename project",
+      "description": "Update a project's name.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          },
+          "name": {
+            "type": "string",
+            "description": "New project name."
+          }
+        },
+        "required": [
+          "project_id",
+          "name"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Rename project",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "upload_document",
+      "title": "Upload document",
+      "description": "Upload a document to a project. Pass file bytes as content_base64; the gateway decodes and rebuilds a multipart request (max 10 MB decoded).",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          },
+          "filename": {
+            "type": "string",
+            "description": "Original filename for the multipart part."
+          },
+          "content_base64": {
+            "type": "string",
+            "description": "Base64-encoded file bytes."
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Optional document title."
+          }
+        },
+        "required": [
+          "project_id",
+          "filename",
+          "content_base64"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Upload document",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "wait_for_update",
+      "title": "Wait for project update",
+      "description": "Poll get_project until the project status changes from the baseline observed at call start, or until the timeout budget is exhausted (max 300 seconds / 5 minutes). Sleeps max(retry_after, 2) seconds between polls. Returns the latest full state plus status_changed and waited_seconds. Chain calls for long-running executions.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Project UUID."
+          },
+          "timeout_seconds": {
+            "default": 180.0,
+            "type": "number",
+            "description": "Wait budget in seconds (clamped to ≤300; default 180)."
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Wait for project update",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    }
+  ]
+}

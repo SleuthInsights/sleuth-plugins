@@ -1,0 +1,16 @@
+{
+  "mcp": {
+    "repository": "https://github.com/SleuthInsights/sleuth-mcp",
+    "endpoint": "https://mcp.sleuthapi.com/mcp"
+  },
+  "branding": {
+    "icon_source": "https://cdn.prod.website-files.com/69b3da160a4309b7a500321c/69bc277420a047a43e152c40_App%20icon.png",
+    "sha256": "11c0688d2d487c0270d6bbabe20843a9c0239554730d0923a434084a390963b3",
+    "brand_color": "#56BEE9",
+    "brand_color_source": "Sleuth navigation SVG on https://sleuthinsights.com/"
+  },
+  "schemas": {
+    "source": "https://agent-plugins.org/schemas/1.0.0/",
+    "retrieved_on": "2026-09-30"
+  }
+}
