@@ -97,8 +97,7 @@ listing.
   `/mcp` to sign in to Sleuth.
 - **Claude Code, installed from this repository:** run
   `claude plugin marketplace add SleuthInsights/sleuth-plugins`, then
-  `claude plugin install sleuth-insights@sleuth-plugins`. While the repository
-  is private, your GitHub account needs read access.
+  `claude plugin install sleuth-insights@sleuth-plugins`.
 - **claude.ai and Cowork:** build a ZIP and upload it under
   **Customize > Plugins > Add > Upload plugin**, then connect Sleuth from the
   plugin's **Connectors** tab:
