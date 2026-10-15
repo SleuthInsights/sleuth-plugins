@@ -124,6 +124,10 @@ def validate(files, submission=False):
             for field in fields:
                 require(isinstance(case.get(field), str) and case[field].strip(),
                         f"Review case missing {field}")
+            for url in case.get("file_attachment_urls", []):
+                https_url(url, "Review attachment")
+    require(not {"test_credentials", "reviewer_instructions"} & set(review),
+            "Reviewer access belongs in the portal's secure fields, not the ZIP")
     require(isinstance(review.get("commerce"), bool), "Commerce declaration is required")
     publication = settings["publication"]
     require(bool(publication.get("release_notes")), "Release notes are required")
