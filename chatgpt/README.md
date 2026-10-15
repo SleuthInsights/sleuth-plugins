@@ -28,6 +28,7 @@ chatgpt/
     LICENSE                     # Synced from the repository root
     assets/sleuth-icon.png      # Synced from the repository root
     skills/sleuth-mcp/SKILL.md  # Synced from the repository root
+  review/review-scope.txt       # File a review case attaches; linked from plugin.json
   scripts/build_plugin.py       # Validate and build the release ZIP
   schemas/                      # Upstream portable schemas for offline validation
   sources.json                  # Endpoint, branding, and schema provenance
@@ -47,7 +48,8 @@ production server.
 
 ## Submission build
 
-Eight review cases for OpenAI's reviewers are embedded in `plugin.json`.
+Eight review cases for OpenAI's reviewers are embedded in `plugin.json`. One
+of them attaches `review/review-scope.txt` through its URL on `main`.
 `python3 chatgpt/scripts/build_plugin.py --submission` also requires the demo
 recording URL. Passing local checks does not verify OAuth sign-in, the saved
 portal version, or review approval.

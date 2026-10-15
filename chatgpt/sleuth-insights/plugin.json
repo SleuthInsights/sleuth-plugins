@@ -5,6 +5,7 @@
   "description": "Run biopharma research with Sleuth, manage projects, and retrieve datasets, artifacts, and documents.",
   "author": {
     "name": "Sleuth Insights",
+    "email": "support@sleuthinsights.com",
     "url": "https://sleuthinsights.com/"
   },
   "homepage": "https://sleuthinsights.com/",
@@ -60,22 +61,25 @@
               "expected_behavior": "Call list_projects with limit=5 and offset=0; use the first returned project_id to get state and messages. Report names and statuses exactly as returned without claiming a sort order the API does not provide. If no project is returned, explain that and do not invent an ID. Do not call create_project, update_project, delete_project, send_message, upload_document, or delete_document."
             },
             {
-              "description": "Dataset pagination. Setup: supply an owned project_id and dataset_id in the immediately preceding reviewer message, selected from a completed test project whose dataset has at least 20 rows. Use synthetic/non-confidential data. A setup with fewer rows must be repaired before running this case.",
-              "prompt": "For the Sleuth dataset I selected, show rows 1 through 10, then rows 11 through 20. Compare the two pages and tell me the total number of rows.",
-              "tools_triggered": "get_dataset",
-              "expected_behavior": "Use the supplied project_id and dataset_id. Request row_offset=0,row_limit=10,include_csv=false, then row_offset=10,row_limit=10,include_csv=false. Show data from the matching pages with no repeated rows introduced by the assistant, and use returned total_rows for the total. Do not fetch an entire CSV or call export_project for this request."
+              "description": "Dataset pagination. Setup: the reviewer account's finished sample project, Reviewer sample: HER2 ADC landscape, has a dataset of at least 20 rows. Read-only.",
+              "prompt": "Open my Sleuth project called Reviewer sample: HER2 ADC landscape. Show rows 1 through 10 of its dataset, then rows 11 through 20, and tell me the total number of rows.",
+              "tools_triggered": "list_projects, list_datasets, get_dataset",
+              "expected_behavior": "Find the project by its exact name with list_projects, paging with offset if it isn't on the first page, then list its datasets. Request row_offset=0,row_limit=10,include_csv=false, then row_offset=10,row_limit=10,include_csv=false. Show rows from the matching pages with no repeats introduced by the assistant, and use the returned total_rows for the total. Do not fetch the entire CSV, call export_project, or change anything."
             },
             {
-              "description": "Artifact rendering and non-visual recovery. Setup: supply an owned project_id plus one actual visual artifact_id and one actual non-visual artifact_id in the immediately preceding reviewer message. Read-only; fixtures must be created and their kinds verified before testing.",
-              "prompt": "Show the visual Sleuth artifact I selected, and summarize the non-visual artifact alongside it.",
-              "tools_triggered": "get_artifact, get_artifact_svg",
-              "expected_behavior": "Use only the supplied project_id and artifact IDs. Read the artifact payloads; request SVG only for the visual artifact and present the actual returned graphic or an honest host rendering limitation. Summarize the non-visual payload with get_artifact. If SVG unexpectedly returns 422, recover with get_artifact and explain the artifact type; do not fabricate a chart."
+              "description": "Artifact rendering and non-visual recovery. Setup: the same sample project, Reviewer sample: HER2 ADC landscape, has at least one chart and one artifact that isn't a chart. Read-only.",
+              "prompt": "In my Sleuth project called Reviewer sample: HER2 ADC landscape, show one of its charts and summarize one of its results that isn't a chart.",
+              "tools_triggered": "list_projects, list_artifacts, get_artifact_svg, get_artifact",
+              "expected_behavior": "Find the project by its exact name and list its artifacts. Request SVG only for an artifact whose artifact_type is visual, and present the returned graphic, or state honestly that the host can't render it. Read a non-visual artifact with get_artifact and summarize only its returned content. If get_artifact_svg returns 422, recover with get_artifact and explain the artifact type; never fabricate a chart. Do not change anything."
             },
             {
-              "description": "Document upload and retrieval. Setup: in the immediately preceding reviewer message, supply an owned idle test project_id and a harmless UTF-8 text attachment named review-scope.txt whose contents are Reviewer fixture: include approved and Phase 3 HER2-directed ADCs; exclude discontinued programs. The actual file must be available in the host. No research run or deletion is authorized by this prompt.",
-              "prompt": "Attach review-scope.txt to the Sleuth project I selected, then confirm the uploaded document and retrieve its current download link. Do not start research yet.",
-              "tools_triggered": "upload_document, list_documents, get_document",
-              "expected_behavior": "Base64-encode the supplied real file and call upload_document with the selected project_id and filename=review-scope.txt, staying below the 10 MB decoded limit. Use returned/listed document_id for get_document. Confirm the actual uploaded name and provide the returned time-limited download_url with its expiry limitation. Do not call send_message or delete_document."
+              "description": "Document upload and retrieval. Setup: attach the linked file review-scope.txt to the conversation. It is UTF-8 text reading: Reviewer fixture: include approved and Phase 3 HER2-directed ADCs; exclude discontinued programs. The prompt creates a new empty project and authorizes no research run or deletion.",
+              "prompt": "Create a Sleuth project called Review scope check, attach review-scope.txt to it, then confirm the uploaded document and give me its download link. Don't start research.",
+              "tools_triggered": "create_project, upload_document, list_documents, get_document",
+              "expected_behavior": "Create the project and use its returned project_id. Base64-encode the attached file and call upload_document with filename=review-scope.txt, staying below the 10 MB decoded limit. Use the returned or listed document_id for get_document. Confirm the uploaded file name and give the returned download_url, noting that it expires. Do not call send_message or delete_document.",
+              "file_attachment_urls": [
+                "https://raw.githubusercontent.com/SleuthInsights/sleuth-plugins/main/chatgpt/review/review-scope.txt"
+              ]
             }
           ],
           "negative": [
@@ -93,7 +97,8 @@
             }
           ]
         },
-        "commerce": false
+        "commerce": false,
+        "commerce_description": "Sleuth Insights does not sell products, take payments, or process purchases."
       },
       "publication": {
         "release_notes": "Initial Sleuth plugin: connects the hosted MCP server and includes guidance for asynchronous biopharma research, approval gates, projects, datasets, artifacts, and documents.",
