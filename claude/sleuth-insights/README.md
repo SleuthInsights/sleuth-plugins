@@ -4,7 +4,9 @@ Sleuth Insights is a biopharma decision-intelligence platform. This plugin lets
 Claude run Sleuth research for you: it creates research projects, sends your
 questions to Sleuth's research engine, follows long-running runs through
 clarification and approval steps, and reads back the datasets, charts, and
-documents Sleuth produces, with sources.
+documents Sleuth produces, with sources. Depending on your Sleuth plan, Claude
+can also search Sleuth's research library and look up structured data on
+companies, drugs, indications, clinical trials, and deals.
 
 The plugin has two parts:
 
@@ -20,6 +22,22 @@ The plugin has two parts:
 You need a Sleuth Studio account with MCP access, which Sleuth turns on per
 organization. If you don't have one, or the connector reports that your
 account lacks access, contact support@sleuthinsights.com.
+
+Some features depend on your Sleuth plan:
+
+- **Research library:** search sell-side research, market intelligence,
+  scientific and clinical literature, filings, patents, regulatory documents,
+  news, and preprints, list the newest documents, and pull the passages that
+  answer a question from a single report.
+- **Research library downloads:** temporary download links for sell-side and
+  market-intelligence reports.
+- **Structured data lookups:** companies, drugs, indications, clinical trials,
+  deals, and how they relate.
+- **Search inside uploaded files:** find passages in documents you've uploaded
+  to a project.
+
+Claude only sees the tools your account includes. To add a feature, upgrade
+your plan or contact support@sleuthinsights.com.
 
 ## Set up
 
@@ -45,6 +63,9 @@ account can see, and runs follow your Sleuth approval settings.
   dataset and summarize which sponsors lead."
 - "Attach this target-criteria document to a new Sleuth project, then find
   Phase 2 and later assets that match it."
+- "Search Sleuth's research library for sell-side views on HER2-directed ADCs,
+  and summarize them with the broker and date for each." (Needs research
+  library access.)
 
 Research runs often take several minutes. Claude checks progress for you and
 tells you when results are ready, or when Sleuth needs an answer or an
@@ -54,9 +75,10 @@ you a proposed research plan or dataset schema and waits for your decision.
 ## What Claude can do with Sleuth
 
 Most Sleuth tools only read data: listing and reading projects, messages,
-datasets, artifacts, and documents, waiting for a run to finish, and exporting
-a project. Depending on your tool permission settings, Claude can run these
-without asking each time.
+datasets, artifacts, and documents, waiting for a run to finish, exporting a
+project, and, if your plan includes them, searching the research library and
+looking up structured data. Depending on your tool permission settings, Claude
+can run these without asking each time.
 
 These tools change data in your Sleuth account:
 
@@ -80,6 +102,8 @@ Inc.:
 
 - Your research questions, project names, and replies to clarification or
   approval requests.
+- Search terms and questions for the research library and structured data
+  lookups, if your plan includes them.
 - Documents you explicitly ask Claude to upload to a Sleuth project.
 - Your sign-in token, so Sleuth can act as your account.
 
@@ -90,9 +114,11 @@ These go to two domains operated by Sleuth Insights, Inc.:
 - auth.sleuth.studio, the Sleuth sign-in service, used only when you connect.
 
 Sleuth's research engine runs on Sleuth's own servers and draws on Sleuth's
-biopharma knowledge base. Results come back to Claude
-through the same connector. How Sleuth stores, uses, and retains this data is
-covered by the [Sleuth Insights Privacy Policy](https://sleuthinsights.com/privacy-policy)
+biopharma knowledge base. Results come back to Claude through the same
+connector. Download links for research library reports point to Google Cloud
+Storage (storage.googleapis.com) and expire after about an hour; the file is
+fetched from there only when you open the link. How Sleuth stores, uses, and
+retains this data is covered by the [Sleuth Insights Privacy Policy](https://sleuthinsights.com/privacy-policy)
 and the [Terms of Service](https://sleuthinsights.com/terms-of-service).
 
 ## Troubleshooting
@@ -101,6 +127,10 @@ and the [Terms of Service](https://sleuthinsights.com/terms-of-service).
   Reconnect from the plugin's Connectors tab, or run `/mcp` in Claude Code.
 - **"Forbidden" or access errors.** Your Sleuth account may not have API
   access, or the project belongs to someone else. Contact
+  support@sleuthinsights.com.
+- **Claude says a Sleuth feature isn't available, or reports "insufficient
+  permissions".** Your plan doesn't include that feature, such as the research
+  library or structured data lookups. Upgrade your plan or contact
   support@sleuthinsights.com.
 - **A run seems stuck.** Long runs are normal. Ask Claude to check the
   project's status. If it shows "awaiting plan approval" or "awaiting schema

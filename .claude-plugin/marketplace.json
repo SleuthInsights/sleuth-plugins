@@ -10,7 +10,7 @@
     {
       "name": "sleuth-insights",
       "source": "./claude/sleuth-insights",
-      "description": "Run biopharma research with Sleuth from Claude: create research projects, follow long-running runs and approval steps, and read the resulting datasets, charts, and documents.",
+      "description": "Run biopharma research with Sleuth from Claude: create research projects, follow long-running runs and approval steps, read the resulting datasets, charts, and documents, and search Sleuth's research library.",
       "category": "research"
     }
   ]

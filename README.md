@@ -85,8 +85,10 @@ report local and writes it to `dist/claude-evals/`. Other options go straight
 to `claude plugin eval`, for example `--case plan-approval --runs 1`.
 
 The stand-in tool list, `claude/evals/mocks/sleuth/_tools.json`, is the
-production server's `tools/list` with output schemas removed. Refresh it when a
-tool's name, description, or inputs change.
+production server's `tools/list` for an account without plan-dependent
+features, with output schemas removed. Refresh it when the name, description,
+or inputs of one of those tools change. Plan-dependent tools, such as the
+research library, aren't in it, so the evals cover the tools every account has.
 
 ## Try the Claude plugin
 
