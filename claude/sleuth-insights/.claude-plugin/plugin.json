@@ -1,8 +1,8 @@
 {
   "name": "sleuth-insights",
   "displayName": "Sleuth Insights",
-  "version": "0.1.0",
-  "description": "Run biopharma research with Sleuth from Claude: create research projects, follow long-running runs and approval steps, and read the resulting datasets, charts, and documents.",
+  "version": "0.2.0",
+  "description": "Run biopharma research with Sleuth from Claude: create research projects, follow long-running runs and approval steps, read the resulting datasets, charts, and documents, and search Sleuth's research library.",
   "author": {
     "name": "Sleuth Insights",
     "email": "support@sleuthinsights.com",

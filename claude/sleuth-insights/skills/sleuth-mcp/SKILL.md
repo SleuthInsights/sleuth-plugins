@@ -3,10 +3,12 @@ name: sleuth-mcp
 description: >-
   Run biopharma and biotech research with the Sleuth tools: create research
   projects, ask natural-language questions, follow long-running runs and
-  approval steps, and retrieve datasets, charts, and documents. Use when the
+  approval steps, and retrieve datasets, charts, and documents. On accounts
+  that include them, also search Sleuth's research library and look up
+  structured company, drug, indication, trial, and deal data. Use when the
   user mentions Sleuth, or asks for biopharma research such as competitive
-  landscapes, pipelines, clinical trials, indications, or deals/M&A while the
-  Sleuth tools are connected.
+  landscapes, pipelines, clinical trials, indications, deals/M&A, or
+  sell-side and scientific reports while the Sleuth tools are connected.
 ---
 
 # Sleuth MCP
@@ -24,6 +26,8 @@ Research is **asynchronous** — runs often take **minutes** (sometimes longer).
 ## What this MCP server is
 
 A thin hosted gateway over the Sleuth **Public API**. Each tool maps to one upstream REST call. The client's bearer credential (OAuth access token or WorkOS `sk_` API key) is forwarded upstream unchanged. The gateway holds no secrets.
+
+Which tools you see depends on the account. Every account has the project, research, dataset, artifact, and document tools. Some accounts also include the research library and structured data lookups; see **Tools that depend on account access**.
 
 ## Auth modes & identity
 
@@ -111,6 +115,46 @@ Terminal / handoff statuses: `complete`, `failed`, `cancelled`. Treat `awaiting_
 
 - Upload ≤10 MB via `upload_document` (base64).
 - `get_document` download URLs expire quickly — refetch when needed.
+- `search_documents(project_id, query, document_ids?, top_k)` (some accounts) searches the text inside a project's uploaded files and returns matching passages; `document_ids` narrows it to specific files, and `top_k` is 1–50. A file uploaded moments ago may return nothing until indexing finishes; try again shortly.
+
+## Tools that depend on account access
+
+These tools appear only when the user's Sleuth account includes the feature:
+
+| Feature | Tools |
+|---------|-------|
+| Research library | `search_research_documents`, `list_recent_research_documents`, `query_research_document` |
+| Research library downloads | `download_restricted_research_document` (needs research library access plus download access) |
+| Structured data lookups | `search_companies`, `search_drugs`, `search_indications`, `get_drug_details`, `find_drug_related_items`, `find_drug_deals`, `find_company_related_assets`, `find_indication_related_items`, `get_clinical_trial_by_code`, `search_clinical_trials`, `get_clinical_trial_attributes`, `find_drugs_by_target`, `find_drugs_by_mechanism_of_action`, `find_drugs_by_modality`, `find_drugs_by_therapeutic_area` |
+| Search inside uploaded files | `search_documents` |
+
+Tools the account lacks are left out of the tool list, and calling one anyway fails with `Authorization failed for tool '<name>': insufficient permissions`. When the user asks for one of these features and the tool is missing or denied:
+
+- Tell them their Sleuth account doesn't include that feature, and that they can upgrade their plan or ask support@sleuthinsights.com for access.
+- Don't retry the call or guess at what it would have returned.
+- Where it fits, offer a research run instead (`create_project`, then `send_message`). It draws on the same knowledge base and can often answer the question, though it takes minutes.
+
+## Research library (some accounts)
+
+Search Sleuth's curated document corpora directly. Results come back immediately, without a research run.
+
+- **`search_research_documents(query, namespaces?, top_k)`** covers sell-side research, market intelligence, news and press releases, PubMed and other scientific and clinical literature, presentations and transcripts, filings (SEC, Hong Kong exchange, corporate financials), patents, regulatory documents and guidelines, Chinese sources such as Wanfang and NMPA, and preprints (bioRxiv, medRxiv). Omit `namespaces` to search everything, or pass some to narrow it, for example `["sellside-research"]`, `["pubmed"]`, `["sec-filings"]`, or `["patents"]`. `top_k` defaults to 50; start with 10–20 to save context.
+- Each result has a `document_id`, `title`, `namespace`, `publication_date`, the matching `pages`, and a matching passage in `text_content`. Sell-side results name the `broker`. Passages contain HTML markup; strip it when quoting.
+- **`list_recent_research_documents(namespace, time_window?, limit)`** lists the newest documents in one namespace, newest first. `time_window` is `day`, `week`, or `month`; omit it for the latest regardless of age. Use it for "what's new" questions.
+- **`query_research_document(namespace, document_id, query, top_k)`** returns the passages that answer a question from one sell-side research (`sellside-research`) or market-intelligence (`mkt-intel-exp-inste`) document, using a `document_id` from search or the recent list. Use it for detailed questions about one report.
+- **`download_restricted_research_document(namespace, document_id)`** returns a temporary `download_url` for one sell-side or market-intelligence document, valid for `expires_in_seconds` (about an hour). Call it only when the user asks for the file, and fetch a new link after it expires.
+- Cite each point with the document title, broker if there is one, publication date, and page. Answer from the returned passages, and quote briefly rather than reproducing long stretches of a report.
+
+## Structured data lookups (some accounts)
+
+Quick factual answers from Sleuth's knowledge base, returned immediately.
+
+1. Resolve names to Sleuth entity IDs first: `search_companies`, `search_drugs` (primary name or synonym), `search_indications`.
+2. Pass those IDs to `get_drug_details`, `find_drug_related_items` (mechanisms, modalities, therapeutic areas, trials, indications, or deals; narrow with `relation_type`), `find_drug_deals`, `find_company_related_assets`, or `find_indication_related_items`.
+3. Trials: `get_clinical_trial_by_code` for a registry code such as NCT01234567, or `search_clinical_trials` with criteria on `title`, `keywords`, `acronym`, `condition`, or `location`. Criteria combine with AND; a single value can use OR. `get_clinical_trial_attributes` takes trial entity IDs.
+4. Browse drugs by attribute: `find_drugs_by_target` (for example PD-1), `find_drugs_by_mechanism_of_action`, `find_drugs_by_modality`, `find_drugs_by_therapeutic_area`. Modality and therapeutic area expect Sleuth's own category names; take them from a `find_drug_related_items` result rather than guessing.
+
+Tools that page take an `offset`; a `next_offset` in the response means more rows exist. One page can hold hundreds of entities, so summarize rather than list everything, and fetch the next page only when the user needs it. If a lookup returns nothing or fails, tell the user rather than guessing, and offer a research run. When the user wants analysis, a curated dataset, or charts, start a research run instead.
 
 ## Control actions
 
@@ -135,6 +179,7 @@ Via `send_message`, provide **exactly one** of `message` or `action`:
 | `401` | Bad/missing credential | Re-run OAuth sign-in or fix the configured key |
 | `403` | Flag / ownership | Credential may lack Public API access or resource ownership |
 | `422` on SVG | Non-visual artifact | Use `get_artifact` instead |
+| `Authorization failed for tool '…': insufficient permissions` | The account doesn't include that feature | Tell the user; suggest upgrading or contacting support@sleuthinsights.com; don't retry |
 
 ## Tool map (quick)
 
@@ -145,8 +190,10 @@ Via `send_message`, provide **exactly one** of `message` or `action`:
 | Run research | `send_message`, `wait_for_update`, `get_messages` |
 | Data out | `list_datasets`, `get_dataset`, `list_dataset_versions`, `download_dataset_csv` |
 | Charts / insights | `list_artifacts`, `get_artifact`, `get_artifact_svg` |
-| Files in | `upload_document`, `list_documents`, `get_document`, `delete_document` |
+| Files in | `upload_document`, `list_documents`, `get_document`, `delete_document`; `search_documents` (some accounts) |
 | Bulk dump | `export_project` |
+| Research library (some accounts) | `search_research_documents`, `list_recent_research_documents`, `query_research_document`, `download_restricted_research_document` |
+| Structured data (some accounts) | `search_companies`, `search_drugs`, `search_indications`, `get_drug_details`, `find_drug_related_items`, `find_drug_deals`, `find_company_related_assets`, `find_indication_related_items`, `get_clinical_trial_by_code`, `search_clinical_trials`, `get_clinical_trial_attributes`, `find_drugs_by_*` |
 
 ## Agent checklist
 
