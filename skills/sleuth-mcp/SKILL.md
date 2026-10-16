@@ -152,9 +152,9 @@ Quick factual answers from Sleuth's knowledge base, returned immediately.
 1. Resolve names to Sleuth entity IDs first: `search_companies`, `search_drugs` (primary name or synonym), `search_indications`.
 2. Pass those IDs to `get_drug_details`, `find_drug_related_items` (mechanisms, modalities, therapeutic areas, trials, indications, or deals; narrow with `relation_type`), `find_drug_deals`, `find_company_related_assets`, or `find_indication_related_items`.
 3. Trials: `get_clinical_trial_by_code` for a registry code such as NCT01234567, or `search_clinical_trials` with criteria on `title`, `keywords`, `acronym`, `condition`, or `location`. Criteria combine with AND; a single value can use OR. `get_clinical_trial_attributes` takes trial entity IDs.
-4. Browse drugs by attribute: `find_drugs_by_target` (for example PD-1), `find_drugs_by_mechanism_of_action`, `find_drugs_by_modality`, `find_drugs_by_therapeutic_area`.
+4. Browse drugs by attribute: `find_drugs_by_target` (for example PD-1), `find_drugs_by_mechanism_of_action`, `find_drugs_by_modality`, `find_drugs_by_therapeutic_area`. Modality and therapeutic area expect Sleuth's own category names; take them from a `find_drug_related_items` result rather than guessing.
 
-Tools that page take an `offset`; a `next_offset` in the response means more rows exist. One page can hold hundreds of entities, so summarize rather than list everything, and fetch the next page only when the user needs it. When the user wants analysis, a curated dataset, or charts, start a research run instead.
+Tools that page take an `offset`; a `next_offset` in the response means more rows exist. One page can hold hundreds of entities, so summarize rather than list everything, and fetch the next page only when the user needs it. If a lookup returns nothing or fails, tell the user rather than guessing, and offer a research run. When the user wants analysis, a curated dataset, or charts, start a research run instead.
 
 ## Control actions
 
