@@ -354,7 +354,7 @@
     {
       "name": "get_onboarding_status",
       "title": "Check Sleuth onboarding",
-      "description": "Check Sleuth onboarding and follow these steps:\n1. Call this before a new user's first Sleuth task and after any tool reports onboarding_required.\n2. Follow only the returned current_step and next_action.\n3. For choose_access_request_path, ask the user to choose Studio or MCP. Show the exact studio_url for Studio and collect profile details only after they choose MCP.\n4. For browser-only steps, ask the user to refresh OAuth and call this tool again. For pending_review, explain that administrator approval is required.",
+      "description": "Check Sleuth onboarding and follow these steps:\n1. Call this when a user says they're new to Sleuth or asks to onboard, and after any tool reports onboarding_required.\n2. Follow only the returned current_step and next_action.\n3. For choose_access_request_path, ask the user to choose Studio or MCP. Show the exact studio_url for Studio and collect profile details only after they choose MCP.\n4. For browser-only steps, ask the user to refresh OAuth and call this tool again. For pending_review, explain that administrator approval is required.",
       "inputSchema": {
         "additionalProperties": false,
         "properties": {},
