@@ -63,7 +63,8 @@ version that accepts the directory listing fields in `plugin.json`.
 `claude/evals/` checks how Claude behaves with the plugin, each case run once
 with the plugin and once without it. The Sleuth tools are stand-ins that
 answer from files, so nothing reaches a Sleuth server and no research is
-billed. Tools without a stand-in, including every delete tool, aren't offered.
+billed. Tools without a stand-in, including every delete tool and the
+onboarding tools, aren't offered.
 Runs do count against your Claude plan's usage, so CI doesn't run them.
 
 | Case | What it checks |
@@ -85,8 +86,10 @@ report local and writes it to `dist/claude-evals/`. Other options go straight
 to `claude plugin eval`, for example `--case plan-approval --runs 1`.
 
 The stand-in tool list, `claude/evals/mocks/sleuth/_tools.json`, is the
-production server's `tools/list` with output schemas removed. Refresh it when a
-tool's name, description, or inputs change.
+production server's `tools/list` for an account without plan-dependent
+features, with output schemas removed. Refresh it when the name, description,
+or inputs of one of those tools change. Plan-dependent tools, such as the
+research library, aren't in it, so the evals cover the tools every account has.
 
 ## Try the Claude plugin
 
