@@ -63,7 +63,8 @@ version that accepts the directory listing fields in `plugin.json`.
 `claude/evals/` checks how Claude behaves with the plugin, each case run once
 with the plugin and once without it. The Sleuth tools are stand-ins that
 answer from files, so nothing reaches a Sleuth server and no research is
-billed. Tools without a stand-in, including every delete tool, aren't offered.
+billed. Tools without a stand-in, including every delete tool and the
+onboarding tools, aren't offered.
 Runs do count against your Claude plan's usage, so CI doesn't run them.
 
 | Case | What it checks |

@@ -5,8 +5,9 @@ Claude run Sleuth research for you: it creates research projects, sends your
 questions to Sleuth's research engine, follows long-running runs through
 clarification and approval steps, and reads back the datasets, charts, and
 documents Sleuth produces, with sources. Depending on your Sleuth plan, Claude
-can also search Sleuth's research library and look up structured data on
-companies, drugs, indications, clinical trials, and deals.
+can also search Sleuth's research library, look up structured data on
+companies, drugs, indications, clinical trials, and deals, and build tables
+from that data that you can download.
 
 The plugin has two parts:
 
@@ -19,25 +20,31 @@ The plugin has two parts:
 
 ## Requirements
 
-You need a Sleuth Studio account with MCP access, which Sleuth turns on per
-organization. If you don't have one, or the connector reports that your
-account lacks access, contact support@sleuthinsights.com.
+You need a Sleuth account. If you're new to Sleuth, sign in when you connect
+and Claude walks you through requesting access, either in the conversation or
+on a Sleuth Studio form. Unless your organization already uses Sleuth, Sleuth
+reviews the request before research tools become available. A few setup steps, such as accepting policies and choosing a
+workspace, happen in Sleuth Studio; Claude gives you the link and picks up
+where you left off.
 
 Some features depend on your Sleuth plan:
 
-- **Research library:** search sell-side research, market intelligence,
-  scientific and clinical literature, filings, patents, regulatory documents,
-  news, and preprints, list the newest documents, and pull the passages that
-  answer a question from a single report.
-- **Research library downloads:** temporary download links for sell-side and
-  market-intelligence reports.
+- **Research library:** search news, scientific and clinical literature,
+  regulatory documents, company filings, patents, broker research, and company
+  presentations and transcripts; list the newest documents; and pull the
+  passages that answer a question from a single broker research report.
+- **Research library downloads:** links to Sleuth-hosted files and to
+  publishers' pages. Broker research downloads need separate download access.
 - **Structured data lookups:** companies, drugs, indications, clinical trials,
   deals, and how they relate.
+- **Dataset builder:** build a table from Sleuth's structured data by filters,
+  such as target, indication, or stage, save it to your Sleuth account, and
+  download it as CSV.
 - **Search inside uploaded files:** find passages in documents you've uploaded
   to a project.
 
-Claude only sees the tools your account includes. To add a feature, upgrade
-your plan or contact support@sleuthinsights.com.
+Claude only sees the tools your account includes. If a feature you need isn't
+enabled for your account, contact support@sleuthinsights.com.
 
 ## Set up
 
@@ -66,6 +73,8 @@ account can see, and runs follow your Sleuth approval settings.
 - "Search Sleuth's research library for sell-side views on HER2-directed ADCs,
   and summarize them with the broker and date for each." (Needs research
   library access.)
+- "Build a Sleuth dataset of PD-1 drugs in Phase 3 or later, show me a
+  preview, and ask before downloading it." (Needs the dataset builder.)
 
 Research runs often take several minutes. Claude checks progress for you and
 tells you when results are ready, or when Sleuth needs an answer or an
@@ -76,16 +85,20 @@ you a proposed research plan or dataset schema and waits for your decision.
 
 Most Sleuth tools only read data: listing and reading projects, messages,
 datasets, artifacts, and documents, waiting for a run to finish, exporting a
-project, and, if your plan includes them, searching the research library and
-looking up structured data. Depending on your tool permission settings, Claude
-can run these without asking each time.
+project, checking your onboarding status, and, if your plan includes them,
+searching the research library, looking up structured data, and downloading a
+built dataset. Depending on your tool permission settings, Claude can run these
+without asking each time.
 
 These tools change data in your Sleuth account:
 
-- Create a project, or upload a document to a project (adds new data).
+- Create a project, upload a document to a project, or build a dataset (adds
+  new data).
 - Send a research message, answer a clarification, approve or reject a plan or
   schema, or cancel a run.
 - Rename or delete a project, or delete a document.
+- While you're setting up Sleuth: submit an access request, save your
+  onboarding answers, or mark setup complete.
 
 Claude asks for your confirmation before it uses the tools that change or
 delete existing data.
@@ -102,9 +115,15 @@ Inc.:
 
 - Your research questions, project names, and replies to clarification or
   approval requests.
-- Search terms and questions for the research library and structured data
-  lookups, if your plan includes them.
+- Search terms, questions, and filters for the research library, structured
+  data lookups, and the dataset builder, if your plan includes them.
 - Documents you explicitly ask Claude to upload to a Sleuth project.
+- If you're new and request access in the conversation: your name, company,
+  country, and company website or LinkedIn profile. During setup, Claude can
+  also save your job title, a description of your role, your answers to
+  work-style questions, your main use cases, and whether you'll use Sleuth in
+  Studio, through Claude, or both. Claude confirms each answer with you before
+  sending it.
 - Your sign-in token, so Sleuth can act as your account.
 
 These go to two domains operated by Sleuth Insights, Inc.:
@@ -115,9 +134,18 @@ These go to two domains operated by Sleuth Insights, Inc.:
 
 Sleuth's research engine runs on Sleuth's own servers and draws on Sleuth's
 biopharma knowledge base. Results come back to Claude through the same
-connector. Download links for research library reports point to Google Cloud
-Storage (storage.googleapis.com) and expire after about an hour; the file is
-fetched from there only when you open the link. How Sleuth stores, uses, and
+connector. Some results include links that you open yourself:
+
+- app.sleuth.studio: Sleuth Studio, for setup steps and to view a dataset
+  you built.
+- public-api.sleuth.studio: CSV downloads of a dataset you built. Links
+  expire after five minutes.
+- storage.googleapis.com (Google Cloud Storage): Sleuth-hosted research
+  library files. Links expire after about an hour.
+- Publishers' own sites, such as PubMed Central, DOI links, or patent
+  offices: research library documents that Sleuth doesn't host.
+
+Nothing is fetched from these sites until you open a link. How Sleuth stores, uses, and
 retains this data is covered by the [Sleuth Insights Privacy Policy](https://sleuthinsights.com/privacy-policy)
 and the [Terms of Service](https://sleuthinsights.com/terms-of-service).
 
@@ -129,9 +157,14 @@ and the [Terms of Service](https://sleuthinsights.com/terms-of-service).
   access, or the project belongs to someone else. Contact
   support@sleuthinsights.com.
 - **Claude says a Sleuth feature isn't available, or reports "insufficient
-  permissions".** Your plan doesn't include that feature, such as the research
-  library or structured data lookups. Upgrade your plan or contact
-  support@sleuthinsights.com.
+  permissions" or "Feature is not enabled".** That feature, such as the
+  research library, broker research downloads, or the dataset builder, isn't
+  enabled for your account. Contact support@sleuthinsights.com.
+- **Claude asks you to finish setting up Sleuth.** Your account still has
+  setup steps left. Follow Claude's prompts, or open the Sleuth Studio link it
+  gives you. After a step in Studio, reconnect Sleuth so your tools refresh.
+- **Your access request is pending.** Sleuth reviews new access requests.
+  You'll be able to use the research tools once it's approved.
 - **A run seems stuck.** Long runs are normal. Ask Claude to check the
   project's status. If it shows "awaiting plan approval" or "awaiting schema
   approval", Sleuth is waiting for your decision.

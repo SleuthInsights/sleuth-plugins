@@ -1,6 +1,22 @@
 {
   "tools": [
     {
+      "name": "complete_mcp_setup",
+      "title": "Complete MCP onboarding setup",
+      "description": "Use only when current_step=mcp_setup and the user confirms this MCP connection works. Then follow the returned next_action.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Complete MCP onboarding setup",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
       "name": "create_project",
       "title": "Create project",
       "description": "Create a new research project. Returns project_id and status idle.",
@@ -21,7 +37,7 @@
         "title": "Create project",
         "readOnlyHint": false,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
@@ -50,7 +66,7 @@
         "title": "Delete document",
         "readOnlyHint": false,
         "destructiveHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
@@ -74,7 +90,7 @@
         "title": "Delete project",
         "readOnlyHint": false,
         "destructiveHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
@@ -115,13 +131,13 @@
         "title": "Download dataset as CSV",
         "readOnlyHint": true,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
       "name": "export_project",
       "title": "Export project",
-      "description": "Export a full project snapshot. Warning: can be very large (upstream caps datasets at 10k rows each). Prefer paginated dataset and artifact tools for agent workflows.",
+      "description": "Export a full project snapshot. Warning: can be very large (datasets are capped at 10k rows each). Prefer paginated dataset and artifact tools for agent workflows. Internal run-progress records are left out of messages and counted in omitted_status_records.",
       "inputSchema": {
         "additionalProperties": false,
         "properties": {
@@ -139,7 +155,7 @@
         "title": "Export project",
         "readOnlyHint": true,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
@@ -168,7 +184,7 @@
         "title": "Get artifact",
         "readOnlyHint": true,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
@@ -197,7 +213,7 @@
         "title": "Get artifact as SVG",
         "readOnlyHint": true,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
@@ -253,7 +269,7 @@
         "title": "Get dataset rows",
         "readOnlyHint": true,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
@@ -282,13 +298,13 @@
         "title": "Get document",
         "readOnlyHint": true,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
       "name": "get_health",
       "title": "Check Sleuth service health",
-      "description": "Check Public API health through the full gateway chain. Unauthenticated upstream; still requires an MCP bearer for this tool.",
+      "description": "Check that the Sleuth service is reachable. Use when other Sleuth tools fail unexpectedly.",
       "inputSchema": {
         "additionalProperties": false,
         "properties": {},
@@ -298,13 +314,13 @@
         "title": "Check Sleuth service health",
         "readOnlyHint": true,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
       "name": "get_messages",
       "title": "Get project messages",
-      "description": "List user and assistant messages for a project.",
+      "description": "List user and assistant messages for a project. Internal run-progress records are left out and counted in omitted_status_records; total, limit, and offset still count them.",
       "inputSchema": {
         "additionalProperties": false,
         "properties": {
@@ -332,7 +348,23 @@
         "title": "Get project messages",
         "readOnlyHint": true,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_onboarding_status",
+      "title": "Check Sleuth onboarding",
+      "description": "Check Sleuth onboarding and follow these steps:\n1. Call this before a new user's first Sleuth task and after any tool reports onboarding_required.\n2. Follow only the returned current_step and next_action.\n3. For choose_access_request_path, ask the user to choose Studio or MCP. Show the exact studio_url for Studio and collect profile details only after they choose MCP.\n4. For browser-only steps, ask the user to refresh OAuth and call this tool again. For pending_review, explain that administrator approval is required.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Check Sleuth onboarding",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
       }
     },
     {
@@ -356,7 +388,7 @@
         "title": "Get project status",
         "readOnlyHint": true,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
@@ -380,7 +412,7 @@
         "title": "List artifacts",
         "readOnlyHint": true,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
@@ -409,7 +441,7 @@
         "title": "List dataset versions",
         "readOnlyHint": true,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
@@ -433,7 +465,7 @@
         "title": "List datasets",
         "readOnlyHint": true,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
@@ -457,13 +489,13 @@
         "title": "List documents",
         "readOnlyHint": true,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
       "name": "list_projects",
       "title": "List projects",
-      "description": "List projects for the authenticated API key.",
+      "description": "List projects the signed-in Sleuth account can access.",
       "inputSchema": {
         "additionalProperties": false,
         "properties": {
@@ -484,7 +516,159 @@
         "title": "List projects",
         "readOnlyHint": true,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "save_onboarding_role",
+      "title": "Save onboarding role",
+      "description": "Use only when current_step=role. Confirm the role details before saving, then call get_onboarding_status again.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "job_title": {
+            "type": "string"
+          },
+          "role_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "linkedin_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "job_title"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Save onboarding role",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "save_onboarding_usage_mode",
+      "title": "Save onboarding usage mode",
+      "description": "Use only when current_step=setup. Confirm studio, mcp, or both with the user, then call get_onboarding_status again.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "usage_mode": {
+            "enum": [
+              "studio",
+              "mcp",
+              "both"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "usage_mode"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Save onboarding usage mode",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "save_onboarding_use_cases",
+      "title": "Save onboarding use cases",
+      "description": "Use only when current_step=use_cases. Use IDs returned in state.use_cases, confirm the user's priority order, then call get_onboarding_status again.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "use_cases": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "use_cases"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Save onboarding use cases",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "save_onboarding_work_style",
+      "title": "Save onboarding work style",
+      "description": "Use only when current_step=work_style. Use question and option IDs returned by get_onboarding_status; omit unanswered questions and never invent IDs. Then call get_onboarding_status again.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "answers": {
+            "items": {
+              "description": "One answer selected from the current onboarding work-style questions.",
+              "properties": {
+                "question_id": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "selected": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "other": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                }
+              },
+              "required": [
+                "question_id"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "answers"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Save onboarding work style",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
       }
     },
     {
@@ -539,7 +723,7 @@
               }
             ],
             "default": null,
-            "description": "Optional rejection feedback, forwarded upstream when non-empty.\nOnly accepted alongside ``reject_plan`` / ``reject_schema``.\nEmpty string is treated as absent."
+            "description": "Optional rejection feedback, sent only when non-empty.\nOnly accepted alongside ``reject_plan`` / ``reject_schema``.\nEmpty string is treated as absent."
           }
         },
         "required": [
@@ -552,6 +736,83 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "openWorldHint": true
+      }
+    },
+    {
+      "name": "submit_onboarding_access_request",
+      "title": "Submit onboarding access request",
+      "description": "Submit a confirmed MCP access request:\n1. Use only when get_onboarding_status returns current_step=access_request and the user chooses MCP.\n2. Reuse first and last name from state.profile; ask only for missing names.\n3. Collect company and country, plus a company website for a work email or LinkedIn URL for a personal email.\n4. Confirm every value and never invent data. After submission, explain that administrator approval is required.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "company_name": {
+            "type": "string",
+            "description": "User's confirmed company or organization."
+          },
+          "country": {
+            "type": "string",
+            "description": "User's confirmed country."
+          },
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Confirmed first name when not returned by status."
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Confirmed last name when not returned by status."
+          },
+          "company_website": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Company website required for a work email."
+          },
+          "linkedin_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "LinkedIn profile required for a personal email."
+          }
+        },
+        "required": [
+          "company_name",
+          "country"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "title": "Submit onboarding access request",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
       }
     },
     {
@@ -580,13 +841,13 @@
         "title": "Rename project",
         "readOnlyHint": false,
         "destructiveHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
       "name": "upload_document",
       "title": "Upload document",
-      "description": "Upload a document to a project. Pass file bytes as content_base64; the gateway decodes and rebuilds a multipart request (max 10 MB decoded).",
+      "description": "Upload a document to a project. Pass file bytes as content_base64 (max 10 MB after decoding).",
       "inputSchema": {
         "additionalProperties": false,
         "properties": {
@@ -626,7 +887,7 @@
         "title": "Upload document",
         "readOnlyHint": false,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     },
     {
@@ -655,7 +916,7 @@
         "title": "Wait for project update",
         "readOnlyHint": true,
         "destructiveHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       }
     }
   ]

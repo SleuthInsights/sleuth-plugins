@@ -4,8 +4,9 @@ description: >-
   Run biopharma and biotech research with the Sleuth tools: create research
   projects, ask natural-language questions, follow long-running runs and
   approval steps, and retrieve datasets, charts, and documents. On accounts
-  that include them, also search Sleuth's research library and look up
-  structured company, drug, indication, trial, and deal data. Use when the
+  that include them, also search Sleuth's research library, look up
+  structured company, drug, indication, trial, and deal data, and build
+  downloadable structured-data datasets. Use when the
   user mentions Sleuth, or asks for biopharma research such as competitive
   landscapes, pipelines, clinical trials, indications, deals/M&A, or
   sell-side and scientific reports while the Sleuth tools are connected.
@@ -19,27 +20,45 @@ Sleuth is a **biopharma decision-intelligence** platform. Strategy, BD, and CI t
 
 - A curated industry knowledge base (companies, drugs, indications, trials, deals, patents, publications)
 - An AI research engine that produces **datasets** (tables) and **artifacts** (charts, insights, text)
-- Engagement via Sleuth Studio (web), the Public API, and this MCP gateway
+- Available in Sleuth Studio (web), through the Sleuth API, and through this MCP server
 
 Research is **asynchronous** — runs often take **minutes** (sometimes longer). Never block forever on one tool call; poll and chain.
 
 ## What this MCP server is
 
-A thin hosted gateway over the Sleuth **Public API**. Each tool maps to one upstream REST call. The client's bearer credential (OAuth access token or WorkOS `sk_` API key) is forwarded upstream unchanged. The gateway holds no secrets.
+Sleuth hosts this MCP server. Each tool makes one call to the Sleuth API as the signed-in user (or with the configured Sleuth API key). The server stores no credentials.
 
-Which tools you see depends on the account. Every account has the project, research, dataset, artifact, and document tools. Some accounts also include the research library and structured data lookups; see **Tools that depend on account access**.
+Which tools you see depends on the account. Every account has the project, research, dataset, artifact, document, and onboarding tools. Some accounts also include the research library, structured data lookups, and the dataset builder; see **Tools that depend on account access**.
 
 ## Auth modes & identity
 
 The credential determines whose projects you see and whether approval gates surface:
 
-| Credential | Runs as | Project namespace | Plan/schema gates |
-|------------|---------|-------------------|-------------------|
-| **OAuth sign-in** (no key configured) | The signed-in Sleuth user | That user's projects | Follow the user's Studio auto-approve settings — gates **may surface** |
-| **User-owned `sk_` key** | The key's owner | That user's projects | Follow the user's Studio auto-approve settings — gates **may surface** |
-| **Org `sk_` key** | Shared org service account | Org-shared namespace | **Auto-approved** — gates never surface |
+| Credential | Runs as | Projects | Plan/schema gates |
+|------------|---------|----------|-------------------|
+| **Sign-in** (no key configured) | The signed-in Sleuth user | That user's projects | Follow the user's Studio auto-approve settings — gates **may surface** |
+| **Personal Sleuth API key** | The key's owner | That user's projects | Follow the user's Studio auto-approve settings — gates **may surface** |
+| **Organization Sleuth API key** | Shared organization account | The organization's shared projects | **Auto-approved** — gates never surface |
 
 When a gate surfaces, the project status is `awaiting_plan_approval` or `awaiting_schema_approval`. Resume with `send_message` using `action=approve_plan` / `approve_schema`, or `reject_plan` / `reject_schema` with optional `feedback`.
+
+## New users and onboarding
+
+Before a new user's first Sleuth task, or whenever a tool reports `onboarding_required`, call `get_onboarding_status` and follow the `current_step` and `next_action` it returns:
+
+| `next_action` | What to do |
+|---------------|------------|
+| `ready` | Carry on with the user's request |
+| `choose_access_request_path` | Offer two ways to request access: the Studio form at the returned `studio_url`, or in this conversation. Only if they choose the conversation, collect what `submit_onboarding_access_request` needs |
+| `await_approval` | Sleuth reviews each access request. Tell the user an administrator must approve it, and stop; there is nothing to poll |
+| `collect_preferences` | Ask the question for the current step and save the answer with the matching tool: `save_onboarding_role`, `save_onboarding_work_style`, `save_onboarding_use_cases`, or `save_onboarding_usage_mode`. When `current_step` is `mcp_setup`, call `complete_mcp_setup` once the user confirms the connection works |
+| `continue_in_studio` | Share the exact `studio_url`. Policies, workspace setup, and invitations happen in Studio. Afterward, ask the user to reconnect Sleuth, then call `get_onboarding_status` again |
+| `not_eligible` | Tell the user their account can't be set up this way and suggest support@sleuthinsights.com |
+
+- An access request needs the user's name, company, and country, plus a company website for a work email or a LinkedIn profile for a personal email.
+- Reuse names the status already returned; ask only for what's missing. Confirm every value with the user before saving it, and never invent answers or option IDs. Use only the question, option, and use-case IDs that `get_onboarding_status` returned.
+- After each save, call `get_onboarding_status` again and follow the new `next_action`.
+- Users who are already set up see `ready`; don't walk them through onboarding unless they ask.
 
 ## Typical happy path
 
@@ -90,7 +109,7 @@ Terminal / handoff statuses: `complete`, `failed`, `cancelled`. Treat `awaiting_
 - Send the user's question as they asked it. Keep their scope and columns; don't add columns, filters, geographies, or time windows they didn't ask for.
 - If more detail would help (geography, time window, inclusion criteria, extra columns), suggest it in your reply and still send the question as asked. The user can add it at plan review or in a follow-up.
 - One clear ask per message; use follow-ups on the **same** `project_id` to refine.
-- English only for phase-1 Public API.
+- Write research messages in English.
 
 ## Reading results
 
@@ -109,7 +128,7 @@ Terminal / handoff statuses: `complete`, `failed`, `cancelled`. Treat `awaiting_
 **Export**
 
 - Prefer paginated dataset/artifact tools first.
-- `export_project` is a full dump (heavy; row cap ~10k per dataset upstream).
+- `export_project` is a full dump (heavy; datasets are capped at ~10k rows each).
 
 **Documents**
 
@@ -123,14 +142,14 @@ These tools appear only when the user's Sleuth account includes the feature:
 
 | Feature | Tools |
 |---------|-------|
-| Research library | `search_research_documents`, `list_recent_research_documents`, `query_research_document` |
-| Research library downloads | `download_restricted_research_document` (needs research library access plus download access) |
+| Research library | `search_research_documents`, `list_recent_research_documents`, `query_research_document`, `download_research_document` (broker research downloads also need download access) |
 | Structured data lookups | `search_companies`, `search_drugs`, `search_indications`, `get_drug_details`, `find_drug_related_items`, `find_drug_deals`, `find_company_related_assets`, `find_indication_related_items`, `get_clinical_trial_by_code`, `search_clinical_trials`, `get_clinical_trial_attributes`, `find_drugs_by_target`, `find_drugs_by_mechanism_of_action`, `find_drugs_by_modality`, `find_drugs_by_therapeutic_area` |
+| Dataset builder | `explore_get_filters`, `explore_search_filter_values`, `explore_build_dataset`, `explore_download_dataset` |
 | Search inside uploaded files | `search_documents` |
 
-Tools the account lacks are left out of the tool list, and calling one anyway fails with `Authorization failed for tool '<name>': insufficient permissions`. When the user asks for one of these features and the tool is missing or denied:
+Tools the account lacks are left out of the tool list, and calling one anyway fails with `Authorization failed for tool '<name>': insufficient permissions`. A broker research download without download access fails with HTTP 403 and `Feature is not enabled`. When the user asks for one of these features and the tool is missing or denied:
 
-- Tell them their Sleuth account doesn't include that feature, and that they can upgrade their plan or ask support@sleuthinsights.com for access.
+- Tell them the feature isn't enabled for their Sleuth account, and that they can contact support@sleuthinsights.com for access.
 - Don't retry the call or guess at what it would have returned.
 - Where it fits, offer a research run instead (`create_project`, then `send_message`). It draws on the same knowledge base and can often answer the question, though it takes minutes.
 
@@ -138,11 +157,24 @@ Tools the account lacks are left out of the tool list, and calling one anyway fa
 
 Search Sleuth's curated document corpora directly. Results come back immediately, without a research run.
 
-- **`search_research_documents(query, namespaces?, top_k)`** covers sell-side research, market intelligence, news and press releases, PubMed and other scientific and clinical literature, presentations and transcripts, filings (SEC, Hong Kong exchange, corporate financials), patents, regulatory documents and guidelines, Chinese sources such as Wanfang and NMPA, and preprints (bioRxiv, medRxiv). Omit `namespaces` to search everything, or pass some to narrow it, for example `["sellside-research"]`, `["pubmed"]`, `["sec-filings"]`, or `["patents"]`. `top_k` defaults to 50; start with 10–20 to save context.
-- Each result has a `document_id`, `title`, `namespace`, `publication_date`, the matching `pages`, and a matching passage in `text_content`. Sell-side results name the `broker`. Passages contain HTML markup; strip it when quoting.
-- **`list_recent_research_documents(namespace, time_window?, limit)`** lists the newest documents in one namespace, newest first. `time_window` is `day`, `week`, or `month`; omit it for the latest regardless of age. Use it for "what's new" questions.
-- **`query_research_document(namespace, document_id, query, top_k)`** returns the passages that answer a question from one sell-side research (`sellside-research`) or market-intelligence (`mkt-intel-exp-inste`) document, using a `document_id` from search or the recent list. Use it for detailed questions about one report.
-- **`download_restricted_research_document(namespace, document_id)`** returns a temporary `download_url` for one sell-side or market-intelligence document, valid for `expires_in_seconds` (about an hour). Call it only when the user asks for the file, and fetch a new link after it expires.
+The library is organized into categories:
+
+| Category | Covers |
+|----------|--------|
+| `news` | News and press releases |
+| `scientific-literature` | Scientific and clinical literature, conference abstracts, and preprints |
+| `regulatory` | Regulatory documents and guidelines |
+| `company-filings` | Company filings and financial reports |
+| `patents` | Patents and related legal documents |
+| `broker-research` | Sell-side research and market intelligence |
+| `company-presentations` | Company presentations and call transcripts |
+| `other-documents` | Other third-party documents |
+
+- **`search_research_documents(query, categories?, top_k)`** searches the library. Omit `categories` to search every category the account can use, or pass some to narrow it, for example `["broker-research"]` or `["scientific-literature", "regulatory"]`. `top_k` is 1–100 and defaults to 50; start with 10–20 to save context.
+- Each result has a `document_id`, `category`, `title`, `publication_date`, the matching `pages`, and a matching passage in `text_content`. Broker research results name the `broker`. Results from outside sources, such as PubMed Central articles, include the source `url` and may have no `title`. Passages contain HTML markup; strip it when quoting.
+- **`list_recent_research_documents(category, time_window?, limit)`** lists the newest documents in one category, newest first. `time_window` is `day`, `week`, or `month`; omit it for the latest regardless of age. When `title` is empty, `name` holds the file name. Use it for "what's new" questions.
+- **`query_research_document(category, document_id, query, top_k)`** returns the passages that answer a question from one `broker-research` document, using a `document_id` from search or the recent list. Other categories don't support it; quote their search passages instead. Use it for detailed questions about one report.
+- **`download_research_document(category, document_id, source_url?)`** returns a `download_url` for one document. For a result with a source `url`, pass that `url` as `source_url`. `download_type` is `signed` for a Sleuth-hosted file (the link expires after `expires_in_seconds`, about an hour) or `source` for the publisher's own page (no expiry). Call it only when the user asks for the file, present the link, and don't claim to have opened or read the file. Fetch a new link after one expires.
 - Cite each point with the document title, broker if there is one, publication date, and page. Answer from the returned passages, and quote briefly rather than reproducing long stretches of a report.
 
 ## Structured data lookups (some accounts)
@@ -155,6 +187,17 @@ Quick factual answers from Sleuth's knowledge base, returned immediately.
 4. Browse drugs by attribute: `find_drugs_by_target` (for example PD-1), `find_drugs_by_mechanism_of_action`, `find_drugs_by_modality`, `find_drugs_by_therapeutic_area`. Modality and therapeutic area expect Sleuth's own category names; take them from a `find_drug_related_items` result rather than guessing.
 
 Tools that page take an `offset`; a `next_offset` in the response means more rows exist. One page can hold hundreds of entities, so summarize rather than list everything, and fetch the next page only when the user needs it. If a lookup returns nothing or fails, tell the user rather than guessing, and offer a research run. When the user wants analysis, a curated dataset, or charts, start a research run instead.
+
+Relationship results carry a `context` list with a short `description` and a `citation`. Public sources keep their links (PubMed, DOI, patents). Documents from Sleuth's own library are cited as "Sleuth research library"; to find the document itself, search the research library if the account has it.
+
+## Dataset builder (some accounts)
+
+Builds a table straight from Sleuth's knowledge base by filters, without a research run, and saves it to the user's Sleuth account. Use it when the user wants a list or table they can filter and download, such as "every PD-1 drug in Phase 3". For analysis or charts, start a research run instead.
+
+1. Call `explore_get_filters` first. It returns the anchors (what each row is, such as a drug), selectable columns, the filters each anchor supports, fixed allowed values, and row limits.
+2. Resolve every free-text term, such as a target, indication, or company, with `explore_search_filter_values(category, query, limit)`. Pass a returned value to the build unchanged. If several values match, ask the user which one they mean. Never invent IDs.
+3. Call `explore_build_dataset(anchor, filters, title?, columns?, generate_anyway?, preview_rows?)`. It saves a new dataset and returns the row count, columns, a short preview, a Studio link, and any warning. If the build fails because the selection is over the interactive row cap, offer to narrow the filters, or, if the user agrees, retry with `generate_anyway=true`; that dataset is available only as a download.
+4. Show the preview and Studio link, then ask whether the user wants the full dataset. Only if they say yes, call `explore_download_dataset(project_id, dataset_id, format)` with the returned IDs. `csv` (the default) returns a download link that expires after five minutes; `json` returns every row in the conversation, which can be large, so use it only when the user asks for it.
 
 ## Control actions
 
@@ -176,10 +219,12 @@ Via `send_message`, provide **exactly one** of `message` or `action`:
 |--------|---------|------------|
 | `409` / project busy | Run already active on this project | Wait until terminal/clarification; don't double-send |
 | `429` / run limit | Org concurrency exceeded | Wait and retry later |
-| `401` | Bad/missing credential | Re-run OAuth sign-in or fix the configured key |
-| `403` | Flag / ownership | Credential may lack Public API access or resource ownership |
+| `401` / not signed in | Bad, missing, or expired credential | Ask the user to reconnect Sleuth and sign in again, or fix the configured key |
+| `403` | Access or ownership | The account may lack API access, or the project belongs to someone else |
+| `403` with `Feature is not enabled` | Broker research download without download access | Tell the user the feature isn't enabled for their account; suggest support@sleuthinsights.com |
 | `422` on SVG | Non-visual artifact | Use `get_artifact` instead |
-| `Authorization failed for tool '…': insufficient permissions` | The account doesn't include that feature | Tell the user; suggest upgrading or contacting support@sleuthinsights.com; don't retry |
+| `onboarding_required` | The user hasn't finished setting up Sleuth | Call `get_onboarding_status` and follow **New users and onboarding** |
+| `Authorization failed for tool '…': insufficient permissions` | The account doesn't include that feature | Tell the user the feature isn't enabled for their account; suggest support@sleuthinsights.com; don't retry |
 
 ## Tool map (quick)
 
@@ -192,8 +237,10 @@ Via `send_message`, provide **exactly one** of `message` or `action`:
 | Charts / insights | `list_artifacts`, `get_artifact`, `get_artifact_svg` |
 | Files in | `upload_document`, `list_documents`, `get_document`, `delete_document`; `search_documents` (some accounts) |
 | Bulk dump | `export_project` |
-| Research library (some accounts) | `search_research_documents`, `list_recent_research_documents`, `query_research_document`, `download_restricted_research_document` |
+| Onboarding | `get_onboarding_status`, `submit_onboarding_access_request`, `save_onboarding_role`, `save_onboarding_work_style`, `save_onboarding_use_cases`, `save_onboarding_usage_mode`, `complete_mcp_setup` |
+| Research library (some accounts) | `search_research_documents`, `list_recent_research_documents`, `query_research_document`, `download_research_document` |
 | Structured data (some accounts) | `search_companies`, `search_drugs`, `search_indications`, `get_drug_details`, `find_drug_related_items`, `find_drug_deals`, `find_company_related_assets`, `find_indication_related_items`, `get_clinical_trial_by_code`, `search_clinical_trials`, `get_clinical_trial_attributes`, `find_drugs_by_*` |
+| Dataset builder (some accounts) | `explore_get_filters`, `explore_search_filter_values`, `explore_build_dataset`, `explore_download_dataset` |
 
 ## Agent checklist
 
@@ -219,3 +266,6 @@ Via `send_message`, provide **exactly one** of `message` or `action`:
 - Don't load entire datasets with huge `row_limit` / `include_csv=true` into context.
 - Don't spam `send_message` while status is `processing` or `executing` (expect 409).
 - Don't treat a single `wait_for_update` timeout as run failure — chain polls.
+- Don't save onboarding answers or submit an access request the user hasn't confirmed.
+- Don't download a built dataset, or retry a build with `generate_anyway=true`, without asking.
+- Don't suggest upgrading or buying a plan; for missing features, point the user to support@sleuthinsights.com.
