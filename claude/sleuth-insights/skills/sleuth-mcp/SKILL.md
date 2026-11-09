@@ -44,7 +44,7 @@ When a gate surfaces, the project status is `awaiting_plan_approval` or `awaitin
 
 ## New users and onboarding
 
-Before a new user's first Sleuth task, or whenever a tool reports `onboarding_required`, call `get_onboarding_status` and follow the `current_step` and `next_action` it returns:
+When the user says they're new to Sleuth or asks to get set up, or whenever a tool reports `onboarding_required`, call `get_onboarding_status` and follow the `current_step` and `next_action` it returns:
 
 | `next_action` | What to do |
 |---------------|------------|
@@ -58,7 +58,7 @@ Before a new user's first Sleuth task, or whenever a tool reports `onboarding_re
 - An access request needs the user's name, company, and country, plus a company website for a work email or a LinkedIn profile for a personal email.
 - Reuse names the status already returned; ask only for what's missing. Confirm every value with the user before saving it, and never invent answers or option IDs. Use only the question, option, and use-case IDs that `get_onboarding_status` returned.
 - After each save, call `get_onboarding_status` again and follow the new `next_action`.
-- Users who are already set up see `ready`; don't walk them through onboarding unless they ask.
+- Users who are already set up can use the other tools directly; don't check onboarding first or walk them through it unless they ask.
 
 ## Typical happy path
 
